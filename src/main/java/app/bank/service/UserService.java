@@ -1,6 +1,6 @@
 package app.bank.service;
 
-import app.bank.user.User;
+import app.bank.entity.User;
 
 import java.util.List;
 
@@ -13,4 +13,5 @@ public interface UserService {
     void cashIn(String username, int amount);
     void cashOut(String username, int amount);
     void transfer(String sender, String receiver, int amount);
+    String verify(User user);
 }

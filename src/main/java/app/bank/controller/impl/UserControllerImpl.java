@@ -2,8 +2,8 @@ package app.bank.controller.impl;
 
 import app.bank.controller.UserController;
 import app.bank.service.UserService;
-import app.bank.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import app.bank.entity.User;
+import app.bank.service.impl.JwtService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,21 +13,28 @@ import java.util.List;
 public class UserControllerImpl implements UserController {
 
     private UserService userService;
+    private JwtService jwtService;
 
-    public UserControllerImpl(UserService userService) {
+    public UserControllerImpl(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
+
     }
 
     @Override
     @PostMapping(path = "/register")
-    public User registerUser(@RequestBody User user) {
-        return userService.registerUser(user);
+    public String  registerUser(@RequestBody User user) {
+        User registerUser = userService.registerUser(user);
+        return jwtService.generateToken(registerUser.getUsername());
     }
 
     @Override
     @PostMapping(path = "/login")
-    public boolean loginUser(@RequestParam String username, @RequestParam String password) {
-        return userService.loginUser(username, password);
+    public String loginUser(@RequestParam String username, @RequestParam String password) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        return userService.verify(user);
     }
 
     @Override

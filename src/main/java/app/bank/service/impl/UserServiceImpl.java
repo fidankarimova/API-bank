@@ -1,14 +1,16 @@
 package app.bank.service.impl;
 
-import app.bank.configuration.SecurityConfig;
 import app.bank.exception.UserAlreadyExists;
 import app.bank.repository.StatementRepository;
 import app.bank.repository.UserRepository;
 import app.bank.service.UserService;
-import app.bank.user.Statement;
-import app.bank.user.User;
+import app.bank.entity.Statement;
+import app.bank.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,29 +21,37 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
     @Autowired
     private StatementRepository statementRepository;
 
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
     public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           StatementRepository statementRepository) {
+                           StatementRepository statementRepository, JwtService jwtService, AuthenticationManager authenticationManager) {
         this.statementRepository = statementRepository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
     }
 
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     @Override
     public User registerUser(User user) {
-        Optional<User> userExists = userRepository.findByUsername(user.getUsername());
-        if(userExists.isPresent()) {
-            throw new UserAlreadyExists("User already exists");
+        if (userRepository.existsByUsername(user.getUsername())) {
+            System.out.println("User already exists: " + user.getUsername());
+            throw new UserAlreadyExists("User already exists with username: " + user.getUsername());
         }
-        String rawPassword = user.getPassword();
-        String hashPassword = passwordEncoder.encode(rawPassword);
-        user.setPassword(hashPassword);
+        System.out.println("Saving new user: " + user.getUsername());
+        user.setPassword(encoder.encode(user.getPassword()));
+        if (user.getBalance() == null) {
+            user.setBalance(0);
+        }
         return userRepository.save(user);
     }
 
@@ -49,7 +59,7 @@ public class UserServiceImpl implements UserService {
     public boolean loginUser(String username, String password) {
         Optional<User> user = userRepository.findByUsername(username);
 
-        if(user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
+        if(user.isPresent() && encoder.matches(password, user.get().getPassword())) {
             return true;
         }
         else {
@@ -145,4 +155,16 @@ public class UserServiceImpl implements UserService {
             statementRepository.save(statement);
         }
     }
+
+    public String verify(User user) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+        );
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateToken(user.getUsername());
+        } else {
+            throw new RuntimeException("Invalid username or password");
+        }
+    }
+
 }

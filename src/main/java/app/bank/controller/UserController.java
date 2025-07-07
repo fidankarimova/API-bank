@@ -1,12 +1,12 @@
 package app.bank.controller;
 
-import app.bank.user.User;
+import app.bank.entity.User;
 
 import java.util.List;
 
 public interface UserController {
-    User registerUser(User user);
-    boolean loginUser(String username, String password);
+    String registerUser(User user);
+    String loginUser(String username, String password);
     Integer getBalance(String username);
     List<User> getAllUsers();
     void deleteUser(String username);

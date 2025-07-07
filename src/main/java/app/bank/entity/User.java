@@ -1,4 +1,4 @@
-package app.bank.user;
+package app.bank.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
