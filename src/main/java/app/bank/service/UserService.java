@@ -1,5 +1,6 @@
 package app.bank.service;
 
+import app.bank.entity.Statement;
 import app.bank.entity.User;
 
 import java.util.List;
@@ -8,10 +9,7 @@ public interface UserService {
     User registerUser(User user);
     boolean loginUser(String username, String password);
     Integer getBalance(String username);
-    List<User> getAllUsers();
     void deleteUser(String username);
-    void cashIn(String username, int amount);
-    void cashOut(String username, int amount);
-    void transfer(String sender, String receiver, int amount);
     String verify(User user);
+    List<Statement> statements(String token);
 }

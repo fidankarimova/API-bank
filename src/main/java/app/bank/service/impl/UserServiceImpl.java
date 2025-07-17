@@ -1,6 +1,9 @@
 package app.bank.service.impl;
 
+import app.bank.exception.InvalidUserInput;
+import app.bank.exception.NotEnoughMoney;
 import app.bank.exception.UserAlreadyExists;
+import app.bank.exception.UserNotFound;
 import app.bank.repository.StatementRepository;
 import app.bank.repository.UserRepository;
 import app.bank.service.UserService;
@@ -59,112 +62,42 @@ public class UserServiceImpl implements UserService {
     public boolean loginUser(String username, String password) {
         Optional<User> user = userRepository.findByUsername(username);
 
-        if(user.isPresent() && encoder.matches(password, user.get().getPassword())) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return user.isPresent() && encoder.matches(password, user.get().getPassword());
     }
 
     @Override
-    public Integer getBalance(String username) {
+    public Integer getBalance(String username) throws RuntimeException {
         Optional<User> user = userRepository.findByUsername(username);
-        return user.get().getBalance();
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        List<User> result = userRepository.findAll();
-        return result;
+        if (user.isPresent()) {
+            return user.get().getBalance();
+        } else {
+            throw new UserNotFound("user not found");
+        }
     }
 
     @Override
     public void deleteUser(String username) {
         Optional<User> user = userRepository.findByUsername(username);
 
-        if(user.isPresent()) {
-            userRepository.delete(user.get());
-        }
+        user.ifPresent(value -> userRepository.delete(value));
     }
 
-    @Override
-    public void cashIn(String username, int amount) {
-        Optional<User> optional = userRepository.findByUsername(username);
-        if (optional.isPresent()) {
-            User user = optional.get();
-            int balance = user.getBalance();
-            balance += amount;
-            user.setBalance(balance);
-            userRepository.save(user);
-        }
-
-        Statement statement = new Statement();
-        statement.setType("Cash in");
-        statement.setAmount(amount);
-        statement.setDate(LocalDateTime.now());
-        statement.setReceiver(username);
-        statement.setSender(null);
-
-        statementRepository.save(statement);
-    }
-
-    @Override
-    public void cashOut(String username, int amount) {
-        Optional<User> optional = userRepository.findByUsername(username);
-        if(optional.isPresent()) {
-            User user = optional.get();
-            int balance = user.getBalance();
-            balance -= amount;
-            user.setBalance(balance);
-            userRepository.save(user);
-        }
-
-        Statement statement = new Statement();
-        statement.setType("Cash out");
-        statement.setAmount(amount);
-        statement.setDate(LocalDateTime.now());
-        statement.setReceiver(username);
-        statement.setSender(null);
-
-        statementRepository.save(statement);
-    }
-
-    @Override
-    public void transfer(String sender, String receiver, int amount) {
-        Optional<User> from = userRepository.findByUsername(sender);
-        Optional<User> to = userRepository.findByUsername(receiver);
-
-        if (from.isPresent() && to.isPresent()) {
-            User fromUser = from.get();
-            User toUser = to.get();
-
-            fromUser.setBalance(fromUser.getBalance() - amount);
-            toUser.setBalance(toUser.getBalance() + amount);
-
-            userRepository.save(toUser);
-            userRepository.save(fromUser);
-
-            Statement statement = new Statement();
-            statement.setType("Transfer");
-            statement.setAmount(amount);
-            statement.setDate(LocalDateTime.now());
-            statement.setReceiver(receiver);
-            statement.setSender(sender);
-
-            statementRepository.save(statement);
-        }
-    }
 
     public String verify(User user) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
         );
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(user.getUsername());
+            String role = userRepository.findByUsername(user.getUsername()).get().getRole();
+            return jwtService.generateToken(user.getUsername(), role);
         } else {
             throw new RuntimeException("Invalid username or password");
         }
+    }
+
+    @Override
+    public List<Statement> statements(String username) {
+        return statementRepository.findBySenderOrReceiver(username, username);
     }
 
 }

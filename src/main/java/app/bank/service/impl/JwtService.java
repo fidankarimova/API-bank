@@ -19,8 +19,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-
-    private String secretkey = "";
+    private String secretkey = "asdfkogow3uyrtaw378e6BQC4PBD689432";
 
     public JwtService() {
 
@@ -33,8 +32,9 @@ public class JwtService {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", "ROLE_" + role);
         return Jwts.builder()
                 .claims()
                 .add(claims)
@@ -55,6 +55,11 @@ public class JwtService {
     public String extractUserName(String token) {
         // extract the username from jwt token
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractUserRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {

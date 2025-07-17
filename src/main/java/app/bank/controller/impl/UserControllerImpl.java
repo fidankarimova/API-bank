@@ -1,9 +1,11 @@
 package app.bank.controller.impl;
 
 import app.bank.controller.UserController;
+import app.bank.entity.Statement;
 import app.bank.service.UserService;
 import app.bank.entity.User;
 import app.bank.service.impl.JwtService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +20,13 @@ public class UserControllerImpl implements UserController {
     public UserControllerImpl(UserService userService, JwtService jwtService) {
         this.userService = userService;
         this.jwtService = jwtService;
-
     }
 
     @Override
     @PostMapping(path = "/register")
     public String  registerUser(@RequestBody User user) {
         User registerUser = userService.registerUser(user);
-        return jwtService.generateToken(registerUser.getUsername());
+        return jwtService.generateToken(registerUser.getUsername(), registerUser.getRole());
     }
 
     @Override
@@ -38,38 +39,28 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @GetMapping(path = "/balance/{username}")
-    public Integer getBalance(@PathVariable String username) {
+    @GetMapping(path = "/balance")
+    public Integer getBalance(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7);
+        String username = jwtService.extractUserName(jwt);
         return userService.getBalance(username);
     }
 
-    @Override
-    @GetMapping(path = "/list")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
 
     @Override
-    @DeleteMapping(path = "/delete/{username}")
-    public void deleteUser(@PathVariable String username) {
+    @DeleteMapping(path = "/delete")
+    public void deleteUser(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7);
+        String username = jwtService.extractUserName(jwt);
         userService.deleteUser(username);
     }
 
     @Override
-    @PutMapping(path = "/cashIn")
-    public void cashIn(@RequestParam String username, @RequestParam int amount) {
-        userService.cashIn(username, amount);
+    @GetMapping(path = "/statements")
+    public List<Statement> statements(@RequestHeader("Authorization") String token) {
+        String jwt = token.substring(7);
+        String username = jwtService.extractUserName(jwt);
+        return userService.statements(username);
     }
 
-    @Override
-    @PutMapping(path = "/cashOut")
-    public void cashOut(@RequestParam String username, @RequestParam int amount) {
-        userService.cashOut(username, amount);
-    }
-
-    @Override
-    @PutMapping(path = "/transfer")
-    public void transfer(@RequestParam String sender, @RequestParam String receiver, @RequestParam int amount) {
-        userService.transfer(sender, receiver, amount);
-    }
 }
