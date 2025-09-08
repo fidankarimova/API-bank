@@ -10,12 +10,14 @@ import app.bank.service.UserService;
 import app.bank.entity.Statement;
 import app.bank.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +48,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(User user) {
+        User fidan = userRepository.findByUsername("fidan").get();
+        List<Statement> receivedStatements = fidan.getReceivedStatements();
+        receivedStatements.remove(receivedStatements.get(0));
+
+        userRepository.save(fidan);
+
         if (userRepository.existsByUsername(user.getUsername())) {
             System.out.println("User already exists: " + user.getUsername());
             throw new UserAlreadyExists("User already exists with username: " + user.getUsername());
@@ -97,7 +105,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<Statement> statements(String username) {
-        return statementRepository.findBySenderOrReceiver(username, username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFound("User not found"));
+
+        return statementRepository.findBySenderOrReceiver(user, user);
     }
+
+    @Override
+    public User updateUserImage(Integer id, String imageUrl) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFound("User not found"));
+        user.setImage_url(imageUrl);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public String getImage(String username) {
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isPresent()) {
+            return user.get().getImage_url();
+        } else {
+            throw new UserNotFound("user not found");
+        }
+    }
+
 
 }

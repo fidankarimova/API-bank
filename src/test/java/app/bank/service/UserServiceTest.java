@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +40,7 @@ public class UserServiceTest {
     private AdminServiceImpl adminServiceImpl;
 
     @Test
-    void cashInSuccessfulTest() {
+    void cashIn_Success() {
         String username = "user";
         int initialBalance = 100;
         int amount = 100;
@@ -55,7 +56,7 @@ public class UserServiceTest {
 
         assertEquals(200, mockUser.getBalance());
         Mockito.verify(userRepository).save(mockUser);
-        Mockito.verify(statementRepository).save(Mockito.any());
+        Mockito.verify(statementRepository).save(any());
     }
 
     @Test
@@ -63,12 +64,12 @@ public class UserServiceTest {
         String username = "user";
         int amount = -50;
         assertThrows(InvalidUserInput.class, () -> transactionServiceImpl.cashIn(username, amount));
-        Mockito.verifyNoInteractions(userRepository);
-        Mockito.verifyNoInteractions(statementRepository);
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(statementRepository);
     }
 
     @Test
-    void cashOutSuccessfulTest() {
+    void cashOut_Success() {
         String username = "user";
         int initialBalance = 100;
         int amount = 50;
@@ -77,13 +78,13 @@ public class UserServiceTest {
         mockUser.setUsername(username);
         mockUser.setBalance(initialBalance);
 
-        Mockito.when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
 
         transactionServiceImpl.cashOut(username, amount);
 
         assertEquals(50, mockUser.getBalance());
-        Mockito.verify(userRepository).save(mockUser);
-        Mockito.verify(statementRepository).save(Mockito.any());
+        verify(userRepository).save(mockUser);
+        verify(statementRepository).save(any());
     }
 
     @Test
@@ -91,8 +92,8 @@ public class UserServiceTest {
         String username = "user";
         int amount = -50;
         assertThrows(InvalidUserInput.class, () -> transactionServiceImpl.cashOut(username, amount));
-        Mockito.verifyNoInteractions(userRepository);
-        Mockito.verifyNoInteractions(statementRepository);
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(statementRepository);
     }
 
     @Test
@@ -104,17 +105,17 @@ public class UserServiceTest {
         mockUser.setUsername(username);
         mockUser.setBalance(50);
 
-        Mockito.when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
 
         assertThrows(NotEnoughMoney.class, () -> transactionServiceImpl.cashOut(username, amount));
 
-        Mockito.verify(userRepository, Mockito.never()).save(Mockito.any());
-        Mockito.verify(statementRepository, Mockito.never()).save(Mockito.any());
+        verify(userRepository, never()).save(any());
+        verify(statementRepository, never()).save(any());
     }
 
 
     @Test
-    void TransferSuccessfulTest() {
+    void transfer_Successt() {
         String sender = "sender";
         String receiver = "receiver";
         int amount = 50;
@@ -127,15 +128,15 @@ public class UserServiceTest {
         mockReceiver.setUsername(receiver);
         mockReceiver.setBalance(200);
 
-        Mockito.when(userRepository.findByUsername(sender)).thenReturn(Optional.of(mockSender));
-        Mockito.when(userRepository.findByUsername(receiver)).thenReturn(Optional.of(mockReceiver));
+        when(userRepository.findByUsername(sender)).thenReturn(Optional.of(mockSender));
+        when(userRepository.findByUsername(receiver)).thenReturn(Optional.of(mockReceiver));
 
         transactionServiceImpl.transfer(sender, receiver, amount);
         assertEquals(150, mockSender.getBalance());
         assertEquals(250, mockReceiver.getBalance());
 
-        Mockito.verify(userRepository).save(mockSender);
-        Mockito.verify(userRepository).save(mockReceiver);
-        Mockito.verify(statementRepository).save(Mockito.any());
+        verify(userRepository).save(mockSender);
+        verify(userRepository).save(mockReceiver);
+        verify(statementRepository).save(any());
     }
 }
