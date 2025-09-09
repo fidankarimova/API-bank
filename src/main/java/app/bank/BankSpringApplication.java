@@ -11,6 +11,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class BankSpringApplication {
 
     public static void main(String[] args) {
+        int[] x = {1,2,3};
+        String a = "f";
+
         SpringApplication.run(BankSpringApplication.class, args);
     }
 

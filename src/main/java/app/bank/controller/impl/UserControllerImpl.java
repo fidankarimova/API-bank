@@ -12,6 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @RestController
@@ -88,4 +95,51 @@ public class UserControllerImpl implements UserController {
         String username = jwtService.extractUserName(jwt);
         return userService.getImage(username);
     }
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException, IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty!");
+        }
+
+        String uploadDir = "images/";
+        Path path = Paths.get(uploadDir + file.getOriginalFilename());
+        Files.createDirectories(path.getParent());
+        Files.write(path, file.getBytes());
+
+        return ResponseEntity.ok("File uploaded: " + file.getOriginalFilename());
+    }
+
+    @GetMapping(value = "/get/{fileName}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getFile(@RequestHeader("Authorization") String token, @PathVariable String fileName) throws IOException {
+        String jwt = token.substring(7);
+        String username = jwtService.extractUserName(jwt);
+        Path path = Paths.get("images/" + fileName);
+        byte[] imageBytes = Files.readAllBytes(path);
+
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
+    }
+
+    @PostMapping("/upload-url")
+    public ResponseEntity<String> uploadImageFromUrl(@RequestBody String imageUrl) {
+        try {
+            String uploadDir = "images/";
+            Files.createDirectories(Paths.get(uploadDir));
+
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+
+            try (InputStream in = new URL(imageUrl).openStream()) {
+                Path filePath = Paths.get(uploadDir + fileName);
+                Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            return ResponseEntity.ok("Image downloaded and saved as: " + fileName);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Failed to download image");
+        }
+    }
+
+
 }
