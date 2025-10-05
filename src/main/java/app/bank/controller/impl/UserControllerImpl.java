@@ -114,6 +114,7 @@ public class UserControllerImpl implements UserController {
     public ResponseEntity<byte[]> getFile(@RequestHeader("Authorization") String token, @PathVariable String fileName) throws IOException {
         String jwt = token.substring(7);
         String username = jwtService.extractUserName(jwt);
+
         Path path = Paths.get("images/" + fileName);
         byte[] imageBytes = Files.readAllBytes(path);
 

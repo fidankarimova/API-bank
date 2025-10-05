@@ -33,6 +33,7 @@ public class SecurityConfig {
                 authorizeHttpRequests(request -> request
                         .requestMatchers("/bank/user/list").hasRole("admin")
                         .requestMatchers("/bank/user/login", "/bank/user/register").permitAll()
+//                        .requestMatchers("/imgbb/**").authenticated()
                         .anyRequest().authenticated()).
                 httpBasic(Customizer.withDefaults()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
