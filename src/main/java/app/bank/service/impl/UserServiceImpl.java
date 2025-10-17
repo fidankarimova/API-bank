@@ -1,7 +1,5 @@
 package app.bank.service.impl;
 
-import app.bank.exception.InvalidUserInput;
-import app.bank.exception.NotEnoughMoney;
 import app.bank.exception.UserAlreadyExists;
 import app.bank.exception.UserNotFound;
 import app.bank.repository.StatementRepository;
@@ -9,42 +7,24 @@ import app.bank.repository.UserRepository;
 import app.bank.service.UserService;
 import app.bank.entity.Statement;
 import app.bank.entity.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.Files;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private StatementRepository statementRepository;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    public UserServiceImpl(UserRepository userRepository,
-                           StatementRepository statementRepository, JwtService jwtService, AuthenticationManager authenticationManager) {
-        this.statementRepository = statementRepository;
-        this.userRepository = userRepository;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
-    }
-
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final StatementRepository statementRepository;
+    private final AuthenticationManager authenticationManager;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     @Override
     public User registerUser(User user) {
@@ -86,7 +66,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(String username) {
         Optional<User> user = userRepository.findByUsername(username);
-
         user.ifPresent(value -> userRepository.delete(value));
     }
 
@@ -128,6 +107,4 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFound("user not found");
         }
     }
-
-
 }

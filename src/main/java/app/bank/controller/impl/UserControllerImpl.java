@@ -5,13 +5,20 @@ import app.bank.entity.Statement;
 import app.bank.service.UserService;
 import app.bank.entity.User;
 import app.bank.service.impl.JwtService;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -23,15 +30,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/bank/user")
+@RequiredArgsConstructor
 public class UserControllerImpl implements UserController {
 
-    private UserService userService;
-    private JwtService jwtService;
-
-    public UserControllerImpl(UserService userService, JwtService jwtService) {
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
+    private final JwtService jwtService;
+    private final UserService userService;
 
     @Override
     @PostMapping(path = "/register")
