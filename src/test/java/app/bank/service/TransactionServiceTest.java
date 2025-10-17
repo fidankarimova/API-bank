@@ -1,12 +1,19 @@
 package app.bank.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import app.bank.entity.User;
 import app.bank.exception.InvalidUserInput;
 import app.bank.exception.NotEnoughMoney;
 import app.bank.repository.StatementRepository;
 import app.bank.repository.UserRepository;
 import app.bank.service.impl.AdminServiceImpl;
-import app.bank.service.impl.TransactionServiceImpl;
 import app.bank.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,16 +21,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
-
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+public class TransactionServiceTest {
+
     @Mock
     private UserRepository userRepository;
 
@@ -34,7 +36,7 @@ public class UserServiceTest {
     private UserServiceImpl userServiceImpl;
 
     @InjectMocks
-    private TransactionServiceImpl transactionServiceImpl;
+    private app.bank.service.impl.TransactionServiceImpl transactionServiceImpl;
 
     @InjectMocks
     private AdminServiceImpl adminServiceImpl;

@@ -2,26 +2,20 @@ package app.bank.service.impl;
 
 import app.bank.entity.Statement;
 import app.bank.entity.User;
-import app.bank.exception.InvalidUserInput;
 import app.bank.exception.NotEnoughMoney;
 import app.bank.exception.UserNotFound;
 import app.bank.repository.StatementRepository;
 import app.bank.repository.UserRepository;
 import app.bank.service.TransactionService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
-    private UserRepository userRepository;
-    private StatementRepository statementRepository;
-
-    public TransactionServiceImpl(UserRepository userRepository, StatementRepository statementRepository, JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.statementRepository = statementRepository;
-    }
+    private final UserRepository userRepository;
+    private final StatementRepository statementRepository;
 
     @Override
     public void cashIn(String username, int amount) {
