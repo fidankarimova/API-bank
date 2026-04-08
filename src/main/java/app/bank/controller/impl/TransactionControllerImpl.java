@@ -3,20 +3,20 @@ package app.bank.controller.impl;
 import app.bank.controller.TransactionController;
 import app.bank.service.TransactionService;
 import app.bank.service.impl.JwtService;
-import app.bank.service.impl.TransactionServiceImpl;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/bank/user")
 public class TransactionControllerImpl implements TransactionController {
 
-    private TransactionService transactionService;
-    private JwtService jwtService;
-
-    public TransactionControllerImpl(TransactionService transactionService, JwtService jwtService) {
-        this.jwtService = jwtService;
-        this.transactionService = transactionService;
-    }
+    private final JwtService jwtService;
+    private final TransactionService transactionService;
 
     @Override
     @PutMapping(path = "/cashIn")
